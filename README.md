@@ -1,4 +1,4 @@
-Phase 5
+Version 2
 - Statistics panel
 - Trend column (📈 📉 ➡)
 - Latest date highlighted
