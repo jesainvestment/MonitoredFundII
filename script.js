@@ -1,5 +1,5 @@
 async function loadCSV(){
-const res=await fetch("MonitoredFund.csv?v=" + Date.now());
+const res=await fetch('MonitoredFund.csv');
 const txt=await res.text();
 const rows=txt.trim().split(/\r?\n/).map(r=>r.split(','));
 const head=rows[0],data=rows.slice(1);
