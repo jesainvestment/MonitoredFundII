@@ -8,7 +8,6 @@ Phase 6
 - Column Fund, High, Low is locked (Horizontal scrolling with the first 4 columns fixed)
 - Relabel webpage display title col 1 from "Sequence" to "Seq."
 - First 4 columns treated as text
-- treated as no data
+- Webpage display "-" and compare with previous fund value even after "-"
 - Latest date highlighted
 - Statistics retained
-- Webpage display "-" and compare with previous fund value even after "-"
