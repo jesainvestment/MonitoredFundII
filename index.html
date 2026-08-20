@@ -176,12 +176,19 @@
 
                         /* No data */
 
-                        if (value === "" || value === "-") {
-                            td.textContent = "";
-                            previous = null;
-                            nodata++;
-                            continue;
-                        }
+if (value === "") {
+    td.textContent = "";
+    previous = null;
+    nodata++;
+    continue;
+}
+
+if (value === "-") {
+    td.textContent = "-";
+    previous = null;
+    nodata++;
+    continue;
+}
 
                         const number = parseFloat(value);
 
