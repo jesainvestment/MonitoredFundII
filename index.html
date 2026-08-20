@@ -1,497 +1,305 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta charset="utf-8">
+    <title>Fund Monitoring Dashboard</title>
 
-<meta name="viewport"
-      content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 16px;
+        }
 
-<title>Fund Monitoring Dashboard</title>
+        #stats {
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ccc;
+            font-weight: bold;
+        }
 
-<style>
+        .table-wrap {
+            overflow: auto;
+            max-height: 85vh;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
 
-body{
-    font-family:Calibri,Arial;
-    background:#f5f5f5;
-    margin:16px
-}
+        table {
+            border-collapse: collapse;
+            min-width: 1400px;
+        }
 
-#stats{
-    margin:10px 0;
-    padding:10px;
-    background:#fff;
-    border:1px solid #ccc;
-    font-weight:bold
-}
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            white-space: nowrap;
+        }
 
-.table-wrap{
-    overflow:auto;
-    max-height:85vh;
-    background:#fff;
-    border:1px solid #ccc
-}
+        th {
+            background: #e6e6e6;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
 
-table{
-    border-collapse:collapse;
-    min-width:1400px
-}
+        /* Price movement colours */
 
-th,td{
-    border:1px solid #ccc;
-    padding:6px 10px;
-    white-space:nowrap
-}
+        .up {
+            background: #d9f2d9;
+        }
 
-th{
-    background:#e6e6e6;
-    position:sticky;
-    top:0;
-    z-index:5
-}
+        .down {
+            background: #ffd9d9;
+        }
 
-.up{
-    background:#d9f2d9
-}
+        .same {
+            background: #fff;
+        }
 
-.down{
-    background:#ffd9d9
-}
+        /* Latest date */
 
-.same{
-    background:#fff
-}
-
-.latest{
-    background:#fff3b0 !important
-}
-
-</style>
-
+        .latest {
+            background: #fff3b0 !important;
+        }
+    </style>
 </head>
-
 
 <body>
 
-<h2>Fund Monitoring Dashboard</h2>
-
-<div id="stats">
-Loading...
-</div>
-
-<div class="table-wrap">
-
-<table id="fundTable">
-
-<thead></thead>
-
-<tbody></tbody>
-
-</table>
-
-</div>
-
-
-<script>
-
-async function loadCSV(){
-
-    const stats =
-        document.getElementById("stats");
-
-    try{
-
-        stats.textContent =
-            "Loading MonitoredFund.csv...";
-
-
-        const response =
-            await fetch(
-                "MonitoredFund.csv?v=" +
-                Date.now()
-            );
-
-
-        if(!response.ok){
-
-            throw new Error(
-                "CSV file not found. HTTP " +
-                response.status
-            );
-
-        }
-
-
-        const text =
-            await response.text();
-
-
-        if(!text.trim()){
-
-            throw new Error(
-                "CSV file is empty"
-            );
-
-        }
-
-
-        /*
-         * Parse CSV
-         */
-
-        const lines =
-            text.trim().split(/\r?\n/);
-
-
-        const rows =
-            lines.map(line =>
-                line.split(",")
-            );
-
-
-        const head = rows[0];
-
-        const data = rows.slice(1);
-
-
-        /*
-         * Statistics
-         */
-
-        let up = 0;
-        let down = 0;
-        let same = 0;
-        let nodata = 0;
-
-
-        const table =
-            document.getElementById(
-                "fundTable"
-            );
-
-
-        table.innerHTML = "";
-
-
-        /*
-         * HEADER
-         */
-
-        const thead =
-            table.createTHead();
-
-        const headerRow =
-            thead.insertRow();
-
-
-        head.forEach((header,index)=>{
-
-    const th =
-        document.createElement("th");
-
-    /* Display Sequence as Seq. */
-    if(index === 0 && header.trim().toLowerCase() === "sequence"){
-        th.textContent = "Seq.";
-    }
-    else{
-        th.textContent = header.trim();
-    }
-
-    if(index === head.length-1){
-
-        th.classList.add(
-            "latest"
-        );
-
-    }
-
-    headerRow.appendChild(th);
-
-});
-
-
-        /*
-         * BODY
-         */
-
-        const tbody =
-            table.createTBody();
-
-
-        data.forEach(row=>{
-
-            if(row.length === 0)
-                return;
-
-
-            const tr =
-                tbody.insertRow();
-
-
-            let previous = null;
-
-            let trend = "➡";
-
-
-            /*
-             * FIRST 4 COLUMNS
-             *
-             * Sequence
-             * Fund
-             * High
-             * Low
-             *
-             * ALWAYS TEXT
-             */
-
-            for(let i=0;
-                i<head.length;
-                i++){
-
-                const td =
-                    tr.insertCell();
-
-
-                const value =
-                    (row[i] || "").trim();
-
-
-                if(i < 4){
-
-                    td.textContent =
-                        value;
-
-                    continue;
-
-                }
-
-
-                /*
-                 * PRICE COLUMNS
-                 */
-
-                if(value === "" ||
-                   value === "-"){
-
-                    td.textContent =
-                        "";
-
-                    previous =
-                        null;
-
-                    nodata++;
-
-                    continue;
-
-                }
-
-
-                const number =
-                    parseFloat(value);
-
-
-                if(isNaN(number)){
-
-                    td.textContent =
-                        value;
-
-                    continue;
-
-                }
-
-
-                if(previous === null){
-
-                    td.textContent =
-                        "■ " +
-                        number.toFixed(4);
-
-                    td.className =
-                        "same";
-
-                    same++;
-
-                }
-
-                else if(number > previous){
-
-                    td.textContent =
-                        "▲ " +
-                        number.toFixed(4);
-
-                    td.className =
-                        "up";
-
-                    up++;
-
-                    trend = "📈";
-
-                }
-
-                else if(number < previous){
-
-                    td.textContent =
-                        "▼ " +
-                        number.toFixed(4);
-
-                    td.className =
-                        "down";
-
-                    down++;
-
-                    trend = "📉";
-
-                }
-
-                else{
-
-                    td.textContent =
-                        "■ " +
-                        number.toFixed(4);
-
-                    td.className =
-                        "same";
-
-                    same++;
-
-                }
-
-
-                previous =
-                    number;
-
-            }
-
-
-            /*
-             * TREND
-             */
-
-            const trendCell =
-                tr.insertCell();
-
-            trendCell.textContent =
-                trend;
-
-        });
-
-
-        /*
-         * TREND HEADER
-         */
-
-        const trendHeader =
-            document.createElement("th");
-
-        trendHeader.textContent =
-            "Trend";
-
-        headerRow.appendChild(
-            trendHeader
-        );
-
-
-        /*
-         * STATISTICS
-         */
-
-        stats.innerHTML =
-            `Total Funds: ${data.length}
-             &nbsp;&nbsp; 🟢 Up: ${up}
-             &nbsp;&nbsp; 🔴 Down: ${down}
-             &nbsp;&nbsp; ⚪ Same: ${same}
-             &nbsp;&nbsp; ⚫ No Data: ${nodata}`;
-
-
-        /*
-         * LOCK FIRST 4 COLUMNS
-         */
-
-        setTimeout(function(){
-
-            let left = 0;
-
-
-            for(let column=0;
-                column<4;
-                column++){
-
-                const cells =
-                    table.querySelectorAll(
-                        `th:nth-child(${column+1}),
-                         td:nth-child(${column+1})`
+    <h2>Fund Monitoring Dashboard</h2>
+
+    <div id="stats">
+        Loading...
+    </div>
+
+    <div class="table-wrap">
+        <table id="fundTable">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadCSV() {
+
+            const stats = document.getElementById("stats");
+
+            try {
+                const response = await fetch(
+                    "MonitoredFund.csv?v=" + Date.now()
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "CSV file not found. HTTP " + response.status
                     );
+                }
 
+                const text = await response.text();
 
-                if(cells.length === 0)
-                    continue;
+                if (!text.trim()) {
+                    throw new Error("CSV file is empty");
+                }
 
+                const rows = text
+                    .trim()
+                    .split(/\r?\n/)
+                    .map(line => line.split(","));
 
-                const width =
-                    cells[0].getBoundingClientRect().width;
+                const head = rows[0];
+                const data = rows.slice(1);
 
+                let up = 0;
+                let down = 0;
+                let same = 0;
+                let nodata = 0;
 
-                cells.forEach(cell=>{
+                const table = document.getElementById("fundTable");
 
-                    cell.style.position =
-                        "sticky";
+                table.innerHTML = "";
 
+                /* Header */
 
-                    cell.style.left =
-                        left + "px";
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
 
+                head.forEach((header, index) => {
 
-                    if(cell.tagName === "TH"){
+                    const th = document.createElement("th");
 
-                        cell.style.top =
-                            "0";
-
-                        cell.style.zIndex =
-                            "20";
-
-                        cell.style.background =
-                            "#e6e6e6";
-
+                    if (
+                        index === 0 &&
+                        header.trim().toLowerCase() === "sequence"
+                    ) {
+                        th.textContent = "Seq.";
+                    } else {
+                        th.textContent = header.trim();
                     }
-                    else{
 
-                        cell.style.zIndex =
-                            "10";
-
-                        cell.style.background =
-                            "#fff";
-
+                    if (index === head.length - 1) {
+                        th.classList.add("latest");
                     }
 
+                    headerRow.appendChild(th);
                 });
 
+                /* Data */
 
-                left += width;
+                const tbody = table.createTBody();
 
+                data.forEach(row => {
+
+                    if (row.length === 0) return;
+
+                    const tr = tbody.insertRow();
+
+                    let previous = null;
+                    let trend = "➡";
+
+                    for (let i = 0; i < head.length; i++) {
+
+                        const td = tr.insertCell();
+                        const value = (row[i] || "").trim();
+
+                        /* First four columns remain text */
+
+                        if (i < 4) {
+                            td.textContent = value;
+                            continue;
+                        }
+
+                        /* No data */
+
+                        if (value === "" || value === "-") {
+                            td.textContent = "";
+                            previous = null;
+                            nodata++;
+                            continue;
+                        }
+
+                        const number = parseFloat(value);
+
+                        if (isNaN(number)) {
+                            td.textContent = value;
+                            continue;
+                        }
+
+                        /* Price comparison */
+
+                        if (previous === null) {
+
+                            td.textContent =
+                                "■ " + number.toFixed(4);
+
+                            td.className = "same";
+                            same++;
+
+                        } else if (number > previous) {
+
+                            td.textContent =
+                                "▲ " + number.toFixed(4);
+
+                            td.className = "up";
+                            up++;
+                            trend = "📈";
+
+                        } else if (number < previous) {
+
+                            td.textContent =
+                                "▼ " + number.toFixed(4);
+
+                            td.className = "down";
+                            down++;
+                            trend = "📉";
+
+                        } else {
+
+                            td.textContent =
+                                "■ " + number.toFixed(4);
+
+                            td.className = "same";
+                            same++;
+                        }
+
+                        previous = number;
+                    }
+
+                    /* Trend */
+
+                    const trendCell = tr.insertCell();
+                    trendCell.textContent = trend;
+                });
+
+                /* Trend header */
+
+                const trendHeader = document.createElement("th");
+                trendHeader.textContent = "Trend";
+                headerRow.appendChild(trendHeader);
+
+                /* Statistics */
+
+                stats.innerHTML =
+                    `Total Funds: ${data.length}
+                    &nbsp;&nbsp; 🟢 Up: ${up}
+                    &nbsp;&nbsp; 🔴 Down: ${down}
+                    &nbsp;&nbsp; ⚪ Same: ${same}
+                    &nbsp;&nbsp; ⚫ No Data: ${nodata}`;
+
+                /* Lock first four columns */
+
+                setTimeout(() => {
+
+                    let left = 0;
+
+                    for (let column = 0; column < 4; column++) {
+
+                        const cells = table.querySelectorAll(
+                            `th:nth-child(${column + 1}),
+                             td:nth-child(${column + 1})`
+                        );
+
+                        if (!cells.length) continue;
+
+                        const width =
+                            cells[0].getBoundingClientRect().width;
+
+                        cells.forEach(cell => {
+
+                            cell.style.position = "sticky";
+                            cell.style.left = left + "px";
+
+                            if (cell.tagName === "TH") {
+                                cell.style.top = "0";
+                                cell.style.zIndex = "20";
+                                cell.style.background = "#e6e6e6";
+                            } else {
+                                cell.style.zIndex = "10";
+                                cell.style.background = "#fff";
+                            }
+                        });
+
+                        left += width;
+                    }
+
+                }, 100);
+
+            } catch (error) {
+
+                console.error(error);
+
+                stats.innerHTML =
+                    "❌ ERROR: " + error.message;
             }
+        }
 
-        },100);
-
-    }
-
-
-    catch(error){
-
-        console.error(error);
-
-        stats.innerHTML =
-            "❌ ERROR: " +
-            error.message;
-
-    }
-
-}
-
-
-loadCSV();
-
-</script>
+        loadCSV();
+    </script>
 
 </body>
 
