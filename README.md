@@ -11,3 +11,4 @@ Phase 6
 - treated as no data
 - Latest date highlighted
 - Statistics retained
+- Webpage display "-" and compare with previous fund value even after "-"
