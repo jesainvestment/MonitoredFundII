@@ -4,3 +4,9 @@ Phase 5
 - Latest date highlighted
 - Sticky header and first columns
 - Cell indicators ▲ ▼ ■
+- Date columns retain the ▲ / ▼ / ■ comparison
+- Column Fund, High, Low is locked (Horizontal scrolling with the first 4 columns fixed)
+- First 4 columns treated as text
+- treated as no data
+- Latest date highlighted
+- Statistics retained
