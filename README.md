@@ -1,4 +1,4 @@
-Phase 6
+Phase 6a (inc Github update via API)
 - Statistics panel
 - Trend column (📈 📉 ➡)
 - Latest date highlighted
